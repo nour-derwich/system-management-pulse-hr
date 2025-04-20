@@ -8,6 +8,14 @@ const KanbanTagSchema = new mongoose.Schema({
   color: {
     type: String,
     required: [true , "title is required"]
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
 }, { timestamps: true });
 

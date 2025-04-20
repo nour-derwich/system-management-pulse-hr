@@ -5,8 +5,9 @@ const passport = require('passport');
 const session = require('express-session');
 const cors = require('cors');
 const path = require('path');
-const config = require('./config/db');
-
+const config = require('./config/ db');
+const connectDB = require('./config/ db');
+connectDB();
 // Initialize express app
 const app = express();
 
@@ -29,13 +30,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 require('./config/passport')(passport);
 
-// Connect to MongoDB
-mongoose.connect(config.mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
