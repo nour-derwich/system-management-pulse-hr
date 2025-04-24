@@ -11,19 +11,27 @@ module.exports = (io) => {
   });
 
   io.on('connection', (socket) => {
-    console.log('New client connected');
+    console.log(`New client connected with ID: ${socket.id}`);
     
     // Join a kanban board room
     socket.on('join-board', (boardId) => {
       socket.join(`board-${boardId}`);
-      console.log(`Client joined board ${boardId}`);
+      console.log(`Client ${socket.id} joined board ${boardId}`);
+      // Emit back to client they've successfully joined
+      socket.emit('board-joined', { boardId });
+    });
+    
+    // Log all incoming events for debugging
+    socket.onAny((event, ...args) => {
+      console.log(`[Socket] Event '${event}' from ${socket.id}:`, JSON.stringify(args));
     });
     
     // Register kanban event handlers
     kanbanHandlers(io, socket);
     
-    socket.on('disconnect', () => {
-      console.log('Client disconnected');
+    // Log disconnections with more detail
+    socket.on('disconnect', (reason) => {
+      console.log(`Client ${socket.id} disconnected. Reason: ${reason}`);
     });
   });
 };

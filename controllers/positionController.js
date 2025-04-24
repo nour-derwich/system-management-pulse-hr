@@ -37,6 +37,8 @@ exports.getPositionById = async (req, res) => {
  */
 exports.createPosition = async (req, res) => {
   try {
+    console.log(req.body);  // Log the body to see what is coming through
+
     const { name, description, department, salary } = req.body;
     
     // Basic validation
@@ -65,6 +67,7 @@ exports.createPosition = async (req, res) => {
     res.status(500).json({ message: 'Error creating position', error: error.message });
   }
 };
+
 
 /**
  * Update position
