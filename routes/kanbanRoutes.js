@@ -5,10 +5,11 @@ const kanbanTagController = require('../controllers/kanbanTagController');
 const { authenticateJWT, authorize } = require('../middleware/auth');
 
 // Apply authentication middleware to all routes
-router.use(authenticateJWT);
+// router.use(authenticateJWT);
 
 // Board routes
-router.get('/boards', kanbanController.getBoards);
+router.get('/', kanbanController.getBoards);
+router.get('/lister', kanbanController.getBoards);
 router.get('/boards/:id', kanbanController.getBoardById);
 router.post('/boards', authorize('admin', 'manager'), kanbanController.createBoard);
 router.put('/boards/:id', authorize('admin', 'manager'), kanbanController.updateBoard);

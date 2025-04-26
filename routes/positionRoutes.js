@@ -7,7 +7,7 @@ const { authenticateJWT, authorize } = require('../middleware/auth');
 router.use(authenticateJWT);
 
 // Get all positions
-router.get('/', positionController.getPositions);
+router.get('/lister/', positionController.getPositions);
 
 // Get position by ID
 router.get('/:id', positionController.getPositionById);

@@ -38,7 +38,7 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/departments', require('./routes/departmentRoutes'));
 app.use('/api/employee', require('./routes/employeeRoutes'));
 app.use('/api/positions', require('./routes/positionRoutes'));
-app.use('/api/kanban', require('./routes/kanbanRoutes'));
+app.use('/api/utils/kanban', require('./routes/kanbanRoutes'));
 
 // Socket status API endpoint
 app.get('/api/socket/status', (req, res) => {

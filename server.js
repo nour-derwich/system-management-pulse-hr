@@ -19,7 +19,10 @@ app.set('socketio', io);
 
 // Initialize socket handlers
 require('./socket/index')(io);
-
+io.on('connection', (socket) => {
+  console.log('New client connected:', socket.id);
+  require('./socket/index')(io, socket);
+});
 // Set port
 const PORT = process.env.PORT || 5000;
 

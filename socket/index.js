@@ -1,3 +1,4 @@
+//soket/index
 const kanbanHandlers = require('./kanbanHandlers');
 
 module.exports = (io) => {
@@ -25,7 +26,8 @@ module.exports = (io) => {
     socket.onAny((event, ...args) => {
       console.log(`[Socket] Event '${event}' from ${socket.id}:`, JSON.stringify(args));
     });
-    
+    console.log(`Socket ${socket.id} connected to rooms:`, socket.rooms);
+
     // Register kanban event handlers
     kanbanHandlers(io, socket);
     
@@ -33,5 +35,12 @@ module.exports = (io) => {
     socket.on('disconnect', (reason) => {
       console.log(`Client ${socket.id} disconnected. Reason: ${reason}`);
     });
+    // In your move-task handler
+  socket.on('move-task', (data) => {
+    console.log('Received move-task:', data);
+    socket.to(`board-${data.boardId}`).emit('task-moved', data);
+    console.log(`Emitted task-moved to board-${data.boardId}`);
   });
+  });
+  
 };
