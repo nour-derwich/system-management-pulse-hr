@@ -4,10 +4,10 @@ const departmentController = require('../controllers/departmentController');
 const { authenticateJWT, authorize } = require('../middleware/auth');
 
 // Apply authentication middleware to all routes
-router.use(authenticateJWT);
+// router.use(authenticateJWT);
 
 // Get all departments
-router.get('/', departmentController.getDepartments);
+router.get('/lister/', departmentController.getDepartments);
 
 // Get department by ID
 router.get('/:id', departmentController.getDepartmentById);

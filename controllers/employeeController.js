@@ -10,7 +10,7 @@ exports.getEmployees = async (req, res) => {
     const employees = await Employee.find()
       .populate('department', 'name')
       .populate('position', 'designation')
-      .populate('supervisor', 'name lastName')
+      .populate('supervisor', 'firstName lastName')
       .populate('user', 'email role');
     
     res.json(employees);
@@ -26,7 +26,7 @@ exports.getEmployeeById = async (req, res) => {
     const employee = await Employee.findById(req.params.id)
       .populate('department', 'name')
       .populate('position', 'designation')
-      .populate('supervisor', 'name lastName')
+      .populate('supervisor', 'firstName lastName')
       .populate('user', 'email role');
     
     if (!employee) {
@@ -49,7 +49,7 @@ exports.getEmployeeById = async (req, res) => {
 exports.createEmployee = async (req, res) => {
   try {
     const {
-      name,
+      firstName,
       lastName,
       email,
       phone,
@@ -66,6 +66,11 @@ exports.createEmployee = async (req, res) => {
       password,
       role
     } = req.body;
+
+    // Validate required fields
+    if (!firstName || !lastName || !email) {
+      return res.status(400).json({ message: 'firstName, lastName, and email are required fields' });
+    }
     
     // Check if employee email already exists
     const existingEmployee = await Employee.findOne({ email });
@@ -85,7 +90,7 @@ exports.createEmployee = async (req, res) => {
       
       // Create new user
       const user = new User({
-        name: `${name} ${lastName}`,
+        name: `${firstName} ${lastName}`,
         email,
         password: password || 'changeme123', // Default password if not provided
         role: role || 'employee'
@@ -97,7 +102,7 @@ exports.createEmployee = async (req, res) => {
     
     // Create new employee
     const employee = new Employee({
-      name,
+      firstName,
       lastName,
       email,
       phone,
@@ -115,15 +120,21 @@ exports.createEmployee = async (req, res) => {
     await employee.save();
     
     // Populate employee data
-    await employee.populate('department', 'name')
+    const populatedEmployee = await Employee.findById(employee._id)
+      .populate('department', 'name')
       .populate('position', 'designation')
-      .populate('supervisor', 'name lastName')
-      .populate('user', 'email role')
-      .execPopulate();
+      .populate('supervisor', 'firstName lastName')
+      .populate('user', 'email role');
     
-    res.status(201).json(employee);
+    res.status(201).json(populatedEmployee);
   } catch (err) {
-    console.error(err.message);
+    console.error('Error creating employee:', err.message);
+    
+    if (err.name === 'ValidationError') {
+      const validationErrors = Object.values(err.errors).map(error => error.message);
+      return res.status(400).json({ message: 'Validation error', errors: validationErrors });
+    }
+    
     res.status(500).send('Server error');
   }
 };
@@ -132,7 +143,7 @@ exports.createEmployee = async (req, res) => {
 exports.updateEmployee = async (req, res) => {
   try {
     const {
-      name,
+      firstName,
       lastName,
       email,
       phone,
@@ -155,8 +166,8 @@ exports.updateEmployee = async (req, res) => {
     }
     
     // Check if email is being changed and already exists
-    if (email !== employee.email) {
-      const existingEmployee = await Employee.findOne({ email });
+    if (email && email !== employee.email) {
+      const existingEmployee = await Employee.findOne({ email, _id: { $ne: req.params.id } });
       if (existingEmployee) {
         return res.status(400).json({ message: 'Employee with this email already exists' });
       }
@@ -166,39 +177,44 @@ exports.updateEmployee = async (req, res) => {
         const user = await User.findById(employee.user);
         if (user) {
           user.email = email;
-          user.name = `${name || employee.name} ${lastName || employee.lastName}`;
+          user.name = `${firstName || employee.firstName} ${lastName || employee.lastName}`;
           await user.save();
         }
       }
     }
     
     // Update employee fields
-    employee.name = name || employee.name;
-    employee.lastName = lastName || employee.lastName;
-    employee.email = email || employee.email;
-    employee.phone = phone || employee.phone;
-    employee.birthday = birthday || employee.birthday;
-    employee.sexe = sexe || employee.sexe;
+    if (firstName) employee.firstName = firstName;
+    if (lastName) employee.lastName = lastName;
+    if (email) employee.email = email;
+    if (phone !== undefined) employee.phone = phone;
+    if (birthday) employee.birthday = birthday;
+    if (sexe) employee.sexe = sexe;
     if (avatar) employee.avatar = avatar;
-    employee.hireDate = hireDate || employee.hireDate;
-    employee.endContract = endContract || employee.endContract;
+    if (hireDate) employee.hireDate = hireDate;
+    if (endContract) employee.endContract = endContract;
     if (departmentId) employee.department = departmentId;
     if (positionId) employee.position = positionId;
     if (supervisorId) employee.supervisor = supervisorId;
-    employee.additionalInfos = additionalInfos || employee.additionalInfos;
+    if (additionalInfos !== undefined) employee.additionalInfos = additionalInfos;
     
     await employee.save();
     
     // Populate employee data
-    await employee.populate('department', 'name')
+    const updatedEmployee = await Employee.findById(employee._id)
+      .populate('department', 'name')
       .populate('position', 'designation')
-      .populate('supervisor', 'name lastName')
-      .populate('user', 'email role')
-      .execPopulate();
+      .populate('supervisor', 'firstName lastName')
+      .populate('user', 'email role');
     
-    res.json(employee);
+    res.json(updatedEmployee);
   } catch (err) {
     console.error(err.message);
+    
+    if (err.name === 'ValidationError') {
+      const validationErrors = Object.values(err.errors).map(error => error.message);
+      return res.status(400).json({ message: 'Validation error', errors: validationErrors });
+    }
     
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ message: 'Employee not found' });
@@ -222,7 +238,7 @@ exports.deleteEmployee = async (req, res) => {
       await User.findByIdAndDelete(employee.user);
     }
     
-    await employee.remove();
+    await Employee.findByIdAndDelete(req.params.id);
     
     res.json({ message: 'Employee removed' });
   } catch (err) {
@@ -243,7 +259,7 @@ exports.getEmployeesByDepartment = async (req, res) => {
     
     const employees = await Employee.find({ department: departmentId })
       .populate('position', 'designation')
-      .populate('supervisor', 'name lastName');
+      .populate('supervisor', 'firstName lastName');
     
     res.json(employees);
   } catch (err) {
@@ -259,7 +275,7 @@ exports.getEmployeesByPosition = async (req, res) => {
     
     const employees = await Employee.find({ position: positionId })
       .populate('department', 'name')
-      .populate('supervisor', 'name lastName');
+      .populate('supervisor', 'firstName lastName');
     
     res.json(employees);
   } catch (err) {

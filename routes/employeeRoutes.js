@@ -9,7 +9,7 @@ const { authenticateJWT, authorize } = require('../middleware/auth');
 router.use(authenticateJWT);
 
 // Get all employees
-router.get('/', employeeController.getEmployees);
+router.get('/lister/', employeeController.getEmployees);
 
 // Get employee by ID
 router.get('/:id', employeeController.getEmployeeById);

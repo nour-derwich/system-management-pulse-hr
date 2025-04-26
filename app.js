@@ -36,7 +36,7 @@ require('./config/passport')(passport);
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/departments', require('./routes/departmentRoutes'));
-app.use('/api/employees', require('./routes/employeeRoutes'));
+app.use('/api/employee', require('./routes/employeeRoutes'));
 app.use('/api/positions', require('./routes/positionRoutes'));
 app.use('/api/kanban', require('./routes/kanbanRoutes'));
 
